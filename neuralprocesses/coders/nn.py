@@ -174,6 +174,7 @@ class UNet:
         residual: bool = False,
         resize_convs: bool = False,
         resize_conv_interp_method: str = "nearest",
+        dropout: float = 0.2,
         dtype=None,
     ):
         self.dim = dim
@@ -202,6 +203,7 @@ class UNet:
         # Default to ReLUs. Moreover, if `activations` is an activation function, repeat
         # it for every layer.
         activations = activations or self.nn.ReLU()
+
         if not isinstance(activations, (tuple, list)):
             activations = (activations,) * len(channels)
         elif len(activations) != len(channels):
@@ -276,11 +278,14 @@ class UNet:
 
             if s == 1:
                 # Just a regular convolutional layer.
-                return Conv(
-                    in_channels=ci,
-                    out_channels=co,
-                    kernel=k,
-                    dtype=dtype,
+                return self.nn.Sequential(
+                    Conv(
+                        in_channels=ci,
+                        out_channels=co,
+                        kernel=k,
+                        dtype=dtype,
+                    ),
+                    self.nn.Dropout(dim, p=dropout),
                 )
             else:
                 # This is a downsampling layer.
@@ -300,15 +305,20 @@ class UNet:
                             stride=s,
                             dtype=dtype,
                         ),
+                        self.nn.Dropout(dim, p=dropout),
                     )
                 else:
                     # Perform subsampling if the previous receptive field is even.
-                    return Conv(
-                        in_channels=ci,
-                        out_channels=co,
-                        kernel=k,
-                        stride=s,
-                        dtype=dtype,
+                    # previously this was just a Conv layer, now added dropout + wrapped in a Sequential
+                    return self.nn.Sequential(
+                        Conv(
+                            in_channels=ci,
+                            out_channels=co,
+                            kernel=k,
+                            stride=s,
+                            dtype=dtype,
+                        ),
+                        self.nn.Dropout(dim, p=dropout),
                     )
 
         def construct_after_turn_layer(i):
@@ -325,11 +335,14 @@ class UNet:
 
             if s == 1:
                 # Just a regular convolutional layer.
-                return Conv(
-                    in_channels=ci,
-                    out_channels=co,
-                    kernel=k,
-                    dtype=dtype,
+                return self.nn.Sequential(
+                    Conv(
+                        in_channels=ci,
+                        out_channels=co,
+                        kernel=k,
+                        dtype=dtype,
+                    ),
+                    self.nn.Dropout(dim, p=dropout),
                 )
             else:
                 # This is an upsampling layer.
@@ -348,15 +361,19 @@ class UNet:
                             stride=1,
                             dtype=dtype,
                         ),
+                        self.nn.Dropout(dim, p=dropout),
                     )
                 else:
-                    return Conv(
-                        in_channels=ci,
-                        out_channels=co,
-                        kernel=k,
-                        stride=s,
-                        transposed=True,
-                        dtype=dtype,
+                    return self.nn.Sequential(
+                        Conv(
+                            in_channels=ci,
+                            out_channels=co,
+                            kernel=k,
+                            stride=s,
+                            transposed=True,
+                            dtype=dtype,
+                        ),
+                        self.nn.Dropout(dim, p=dropout),
                     )
 
         self.before_turn_layers = self.nn.ModuleList(
