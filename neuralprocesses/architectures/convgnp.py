@@ -123,7 +123,7 @@ def construct_convgnp(
     aux_t_mlp_layers=(128,) * 3,
     divide_by_density=True,
     epsilon=1e-4,
-    dropout=0.3, # added dropout
+    dropout=0.0, # added dropout
     transform=None,
     dtype=None,
     nps=nps,

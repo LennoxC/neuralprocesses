@@ -25,3 +25,6 @@ cover
 .vscode/*
 venv-np
 _experiments
+# pixi environments
+.pixi/*
+!.pixi/config.toml
