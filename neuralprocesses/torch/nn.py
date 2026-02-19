@@ -93,6 +93,24 @@ def ConvNd(
         **additional_args,
     )
 
+def DropoutNd(
+    dim: int,
+    p: float = 0.5,
+    dtype=None,
+):
+    """Dropout layer.
+
+    Args:
+        dim (int): Dimensionality.
+        p (float, optional): Dropout probability. Defaults to `0.5`.
+        dtype (dtype): Data type.
+
+    Returns:
+        object: Dropout layer.
+    """
+    return getattr(torch.nn, f"Dropout{dim}d")(
+        p=p,
+    )
 
 def UpSamplingNd(
     dim: int,
@@ -223,6 +241,12 @@ class Interface:
     Conv1d = partial(ConvNd, dim=1)
     Conv2d = partial(ConvNd, dim=2)
     Conv3d = partial(ConvNd, dim=3)
+
+    # added dropout layers
+    Dropout = staticmethod(DropoutNd)
+    Dropout1d = partial(DropoutNd, dim=1)
+    Dropout2d = partial(DropoutNd, dim=2)
+    Dropout3d = partial(DropoutNd, dim=3)
 
     UpSampling = staticmethod(UpSamplingNd)
     UpSampling1d = staticmethod(UpSamplingNd)

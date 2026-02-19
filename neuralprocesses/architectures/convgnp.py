@@ -123,6 +123,7 @@ def construct_convgnp(
     aux_t_mlp_layers=(128,) * 3,
     divide_by_density=True,
     epsilon=1e-4,
+    dropout=0.0, # added dropout
     transform=None,
     dtype=None,
     nps=nps,
@@ -292,11 +293,13 @@ def construct_convgnp(
                 resize_conv_interp_method=unet_resize_conv_interp_method,
                 separable="sep" in conv_arch,
                 residual="res" in conv_arch,
+                dropout=dropout, # added dropout
                 dtype=dtype,
             )
         else:
             lv_conv = lambda x: x
 
+        # dropout so-far only supported in UNet architecture
         conv = nps.UNet(
             dim=dim_x,
             in_channels=in_channels,
@@ -309,6 +312,7 @@ def construct_convgnp(
             resize_conv_interp_method=unet_resize_conv_interp_method,
             separable="sep" in conv_arch,
             residual="res" in conv_arch,
+            dropout=dropout, # added dropout
             dtype=dtype,
         )
         receptive_field = conv.receptive_field / points_per_unit
